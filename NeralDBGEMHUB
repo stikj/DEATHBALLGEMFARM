@@ -1,24 +1,19 @@
--- Load the Vision UI Library
 local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/Loco-CTO/UI-Library/main/VisionLibV2/source.lua'))()
-
--- Create the main window
 local Window = Library:Create({
     Name = "Deathball Farm V2", -- Name of the window
     Footer = "By Neral (St1kJ)", -- Footer text
     Text = "Yawa",
-    ToggleKey = Enum.KeyCode.P, -- Key to toggle the window visibility
+    ToggleKey = Enum.KeyCode.Equals, -- Key to toggle the window visibility
     LoadedCallback = function()
         -- This function runs when the UI is loaded
     end,
-    
-	KeySystem = true, -- Boolean
+	KeySystem = false, -- Boolean
 	Key = "INAMORAY123", -- String
 	MaxAttempts = 5, -- Integer
 	DiscordLink = "https://discord.gg/MA6CBKG64D", -- String (Set it to nil if you do not have one, the button will not pop out)
 	ToggledRelativeYOffset = 5 -- Number (Y Offset from bottom of your screen. Set it to nil if you want it to be centred)
 })
 
--- Create a tab inside the window
 local Tab = Window:Tab({
     Name = "DEATHBALL MAIN FARM", -- Name of the tab
     Icon = "rbxassetid://111124850721058", -- Changed to a valid asset ID
