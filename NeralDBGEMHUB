@@ -380,6 +380,66 @@ Section2:Toggle({
     end,
 })
 
+})
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
+
+local autoDisconnectEnabled = false
+
+local function showNotification(message)
+    StarterGui:SetCore("SendNotification", {
+        Title = "Auto Disconnect",
+        Text = message,
+        Duration = 3
+    })
+    print("Notification: " .. message)
+end
+
+local function disconnectPlayer()
+    showNotification("Server is no longer full (10/10). Disconnecting...") -- Show notification before disconnecting
+    task.wait(3) -- Wait for the notification to show
+
+    local success, errorMessage = pcall(function()
+        player:Kick("Disconnected because the server is no longer full (10/10).")
+    end)
+
+    if not success then
+        warn("Kick() failed. Forcing disconnect...")
+        while true do end -- Crashes the game to force a disconnect
+    end
+end
+
+local function checkPlayerCount()
+    print("Current Players: " .. #Players:GetPlayers())
+    if autoDisconnectEnabled and #Players:GetPlayers() < 10 then
+        disconnectPlayer()
+    end
+end
+
+-- Detect when a player leaves
+Players.PlayerRemoving:Connect(function()
+    task.wait(1) -- Short delay to ensure count updates
+    checkPlayerCount()
+end)
+
+-- Add Toggle Button
+Section1:Toggle({
+    Name = "Auto Disconnect",
+    Default = false,
+    Callback = function(state)
+        autoDisconnectEnabled = state
+        if state then
+            showNotification("Auto Disconnect Enabled")
+        else
+            showNotification("Auto Disconnect Disabled")
+        end
+        print("Auto Disconnect State: " .. tostring(state))
+    end
+})
+
+
 -- Variables for Stare Feature
 local isStareActive = false
 local stareConnection = nil
@@ -513,3 +573,60 @@ Section4:Toggle({
         end
     end,
 })
+
+-- Add a section inside the tab
+local SectionGE = Tab:Section({
+    Name = "Auto Collect Gems"
+})
+
+-- Toggle Button for Auto Collect
+local AutoCollectEnabled = false
+
+local ToggleButton = SectionGE:Toggle({
+    Name = "Enable Auto Collect",
+    Default = false,
+    Callback = function(Value)
+        AutoCollectEnabled = Value
+        if AutoCollectEnabled then
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "Auto Collect",
+                Text = "Enabled",
+                Duration = 2
+            })
+        else
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "Auto Collect",
+                Text = "Disabled",
+                Duration = 2
+            })
+        end
+    end
+})
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Function to collect gems
+local function collectGems()
+    while AutoCollectEnabled do
+        for _, parent in ipairs(workspace.FX:GetChildren()) do
+            for _, gem in ipairs(parent:GetChildren()) do
+                if gem.Name == "FakeGem" and gem:IsA("BasePart") then
+                    humanoidRootPart.CFrame = gem.CFrame
+                    task.wait(0.1)
+                end
+            end
+        end
+        task.wait(1)
+    end
+end
+
+-- Detect new gem folders
+workspace.FX.ChildAdded:Connect(function(child)
+    task.wait(1)
+    if AutoCollectEnabled then
+        collectGems()
+    end
+end)
+
