@@ -1,131 +1,54 @@
 local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/Loco-CTO/UI-Library/main/VisionLibV2/source.lua'))()
 local Window = Library:Create({
-    Name = "Deathball Farm V2", -- Name of the window
-    Footer = "By Neral (St1kJ)", -- Footer text
+    Name = "Deathball Farm V2",
+    Footer = "By Neral (St1kJ)",
     Text = "Yawa",
-    ToggleKey = Enum.KeyCode.Equals, -- Key to toggle the window visibility
-    LoadedCallback = function()
-        -- This function runs when the UI is loaded
-    end,
-	KeySystem = false, -- Boolean
-	Key = "INAMORAY123", -- String
-	MaxAttempts = 5, -- Integer
-	DiscordLink = "https://discord.gg/MA6CBKG64D", -- String (Set it to nil if you do not have one, the button will not pop out)
-	ToggledRelativeYOffset = 5 -- Number (Y Offset from bottom of your screen. Set it to nil if you want it to be centred)
+    ToggleKey = Enum.KeyCode.Equals,
+    LoadedCallback = function() end,
+    KeySystem = false,
+    Key = "INAMORAY123",
+    MaxAttempts = 5,
+    DiscordLink = "https://discord.gg/MA6CBKG64D",
+    ToggledRelativeYOffset = 5
 })
 
 local Tab = Window:Tab({
-    Name = "DEATHBALL MAIN FARM", -- Name of the tab
-    Icon = "rbxassetid://111124850721058", -- Changed to a valid asset ID
-    Color = Color3.fromRGB(255, 255, 0), -- Using fromRGB for proper color format
-    ActivationCallback = function()
-        -- This function runs when the tab is activated
-    end,
-    DeactivationCallback = function()
-        -- This function runs when the tab is deactivated
-    end,
+    Name = "DEATHBALL MAIN FARM",
+    Icon = "rbxassetid://111124850721058",
+    Color = Color3.fromRGB(255, 255, 0),
+    ActivationCallback = function() end,
+    DeactivationCallback = function() end,
 })
 
--- Add a section inside the tab
-local Section1 = Tab:Section({
-    Name = "Main", -- Name of the section
-})
+-- Main Section
+local Section1 = Tab:Section({ Name = "Main" })
 
--- Add a button to the section
+-- Anti-AFK Button
 Section1:Button({
-    Name = "Anti KFC(AFK)", -- Name of the button
+    Name = "Anti KFC(AFK)",
     Callback = function()
+        local VirtualUser = game:GetService('VirtualUser')
+        game:GetService('Players').LocalPlayer.Idled:Connect(function()
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.new())
+        end)
         Library:Notify({
-            Name = "Anti AFK", -- String
-            Text = "Activated", -- String
-            Icon = "rbxassetid://136738330571760", -- String
-            Sound = "rbxassetid://6647898215", -- String
-            Duration = 5, -- Integer
-            Callback = function()
-                local VirtualUser = game:GetService('VirtualUser')
-                game:GetService('Players').LocalPlayer.Idled:Connect(function()
-                    VirtualUser:CaptureController()
-                    VirtualUser:ClickButton2(Vector2.new())
-                end)
-            end
+            Name = "Anti AFK",
+            Text = "Activated",
+            Icon = "rbxassetid://136738330571760",
+            Sound = "rbxassetid://6647898215",
+            Duration = 5,
         })
     end
 })
 
--- State variable for proximity check loop
+-- Auto Ready Toggle
 local isAutoReadyActive = false
-
--- Function to start the proximity check loop
-local function startProximityCheck()
-    local Players = game:GetService("Players")
-    local Workspace = game:GetService("Workspace")
-
-    local player = Players.LocalPlayer
-
-    -- Find the ReadyZone and TargetArea
-    local ReadyZone = Workspace:FindFirstChild("New Lobby") and Workspace["New Lobby"]:FindFirstChild("ReadyArea") and Workspace["New Lobby"].ReadyArea:FindFirstChild("ReadyZone")
-    local TargetArea = Workspace["New Lobby"].Lobby.Build:GetChildren()[22]:GetChildren()[26]
-
-    if not ReadyZone or not TargetArea then
-        warn("ReadyZone or TargetArea not found!")
-        return
-    end
-
-    -- Function to trigger ReadyUpEvent
-    local function autoReady()
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local ReadyEvent = ReplicatedStorage:FindFirstChild("ReadyUpEvent")
-        if ReadyEvent then
-            ReadyEvent:FireServer()
-        else
-            warn("ReadyUpEvent not found!")
-        end
-    end
-
-    -- Function to teleport player to ReadyZone
-    local function teleportToReadyZone()
-        if not isAutoReadyActive then return end -- Only teleport if the toggle is active
-
-        local character = player.Character or player.CharacterAdded:Wait()
-        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-        humanoidRootPart.CFrame = ReadyZone.CFrame
-        autoReady()
-    end
-
-    -- Detect touch on TargetArea to teleport player
-    TargetArea.Touched:Connect(function(hit)
-        if not isAutoReadyActive then return end -- Only teleport if the toggle is active
-
-        local character = hit.Parent
-        if character and Players:GetPlayerFromCharacter(character) == player then
-            teleportToReadyZone()
-        end
-    end)
-
-    -- Proximity check loop
-    while true do
-        wait(1)
-        if not isAutoReadyActive then continue end -- Skip if the toggle is inactive
-
-        local character = player.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            local humanoidRootPart = character.HumanoidRootPart
-            if (humanoidRootPart.Position - TargetArea.Position).Magnitude < 5 then
-                teleportToReadyZone()
-            end
-        end
-    end
-end
-
--- Start the proximity check loop in a separate coroutine
-coroutine.wrap(startProximityCheck)()
-
--- Add a toggle to the section
 Section1:Toggle({
-    Name = "Auto Ready", -- Name of the toggle
-    Default = false, -- Default state of the toggle
+    Name = "Auto Ready",
+    Default = false,
     Callback = function(state)
-        isAutoReadyActive = state -- Update the state of the toggle
+        isAutoReadyActive = state
         Library:Notify({
             Name = "Auto Ready",
             Text = state and "Enabled" or "Disabled",
@@ -136,18 +59,15 @@ Section1:Toggle({
     end,
 })
 
--- Anti-Lag toggle with callback function
+-- Anti-Lag Toggle
 Section1:Toggle({
-    Name = "Anti-Lag", -- Name of the toggle
-    Default = false, -- Default state of the toggle
+    Name = "Anti-Lag",
+    Default = false,
     Callback = function(state)
         if state then
-            -- Apply Anti-Lag optimizations
-            local RunService = game:GetService("RunService")
             local Lighting = game:GetService("Lighting")
             local Terrain = workspace:FindFirstChildOfClass("Terrain")
             
-            -- 🌟 Optimize Terrain
             if Terrain then
                 Terrain.WaterWaveSize = 0
                 Terrain.WaterWaveSpeed = 0
@@ -155,42 +75,25 @@ Section1:Toggle({
                 Terrain.WaterTransparency = 0
             end
             
-            -- 💡 Optimize Lighting
             Lighting.GlobalShadows = false
             Lighting.FogEnd = 9e9
             
-            -- Remove all effects in Lighting
             for _, v in ipairs(Lighting:GetDescendants()) do
-                if v:IsA("PostEffect") or v:IsA("BlurEffect") or v:IsA("SunRaysEffect") or 
-                   v:IsA("ColorCorrectionEffect") or v:IsA("BloomEffect") or v:IsA("DepthOfFieldEffect") then
+                if v:IsA("PostEffect") then
                     v.Enabled = false
                 end
             end
             
-            -- 🚀 Optimize All Game Objects
             for _, v in ipairs(workspace:GetDescendants()) do
                 if v:IsA("BasePart") then
                     v.Material = Enum.Material.Plastic
                     v.Reflectance = 0
                 elseif v:IsA("Decal") or v:IsA("Texture") then
                     v.Transparency = 1
-                elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or 
-                       v:IsA("Fire") or v:IsA("Sparkles") then
+                elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
                     v:Destroy()
-                elseif v:IsA("Explosion") then
-                    v.BlastPressure = 1
-                    v.BlastRadius = 1
                 end
             end
-            
-            -- Create a variable to store the connection
-            _G.AntiLagConnection = workspace.DescendantAdded:Connect(function(child)
-                task.wait() -- Slight delay for safety
-                if child:IsA("ForceField") or child:IsA("Sparkles") or child:IsA("Smoke") or 
-                   child:IsA("Fire") or child:IsA("ParticleEmitter") or child:IsA("Trail") then
-                    child:Destroy()
-                end
-            end)
             
             Library:Notify({
                 Name = "Anti-Lag",
@@ -200,12 +103,6 @@ Section1:Toggle({
                 Duration = 5,
             })
         else
-            -- Disconnect the anti-lag connection when toggled off
-            if _G.AntiLagConnection then
-                _G.AntiLagConnection:Disconnect()
-                _G.AntiLagConnection = nil
-            end
-            
             Library:Notify({
                 Name = "Anti-Lag",
                 Text = "Deactivated",
@@ -217,109 +114,16 @@ Section1:Toggle({
     end,
 })
 
--- Variables for Auto Disconnect feature
+-- Auto Disconnect Section
+local Section2 = Tab:Section({ Name = "Auto Disconnect" })
+
 local targetPlayerName = ""
 local isAutoDisconnectActive = false
-local disconnectConnection = nil
 
--- Function to handle player disconnection
-local function setupAutoDisconnect()
-    local Players = game:GetService("Players")
-    local player = Players.LocalPlayer
-    local StarterGui = game:GetService("StarterGui")
-    
-    -- Clean up any existing connection
-    if disconnectConnection then
-        disconnectConnection:Disconnect()
-        disconnectConnection = nil
-    end
-    
-    -- If the feature is disabled or no target is specified, return
-    if not isAutoDisconnectActive or targetPlayerName == "" then
-        return
-    end
-    
-    -- Function to show notification
-    local function showNotification(message)
-        StarterGui:SetCore("SendNotification", {
-            Title = "Auto Disconnect",
-            Text = message,
-            Duration = 3
-        })
-    end
-    
-    -- Function to disconnect the player
-    local function disconnectPlayer(reason)
-        showNotification(reason)
-        task.wait(3) -- Wait for notification to show
-        
-        local success, errorMessage = pcall(function()
-            player:Kick(reason)
-        end)
-        
-        if not success then
-            warn("Kick() failed. Forcing disconnect...")
-            while true do end -- Crashes the game to force disconnect
-        end
-    end
-    
-    -- Check if the target player is already in the game
-    local targetExists = false
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p.Name:lower() == targetPlayerName:lower() then
-            targetExists = true
-            break
-        end
-    end
-    
-    if not targetExists then
-        Library:Notify({
-            Name = "Farmer Not Found", -- String
-            Text = "User is not here..", -- String
-            Icon = "rbxassetid://11401835376", -- String
-            Sound = "rbxassetid://6647898215", -- String
-            Duration = 5, -- Integer
-            Callback = function()
-                -- Function
-            end })
-    else
-        Library:Notify({
-            Name = "Farmer Found", -- String
-            Text = "Happy farming!", -- String
-            Icon = "rbxassetid://11401835376", -- String
-            Sound = "rbxassetid://6647898215", -- String
-            Duration = 5, -- Integer
-            Callback = function()
-                Library:Notify({
-        Name = "Auto Disconnect",
-        Text = "Monitoring player: " .. targetPlayerName,
-        Icon = "rbxassetid://11401835376",
-        Sound = "rbxassetid://6647898215",
-        Duration = 5,
-    })
-            end
-        })
-		
-    end
-    
-    -- Set up connection to monitor player leaving
-    disconnectConnection = Players.PlayerRemoving:Connect(function(leavingPlayer)
-        if leavingPlayer.Name:lower() == targetPlayerName:lower() then
-            disconnectPlayer("Target player " .. leavingPlayer.Name .. " left the server. Disconnecting...")
-        end
-    end)
-end
-
--- Add a section for the Auto Disconnect feature
-local Section2 = Tab:Section({
-    Name = "Auto Disconnect", -- Name of the section
-})
-
--- Add a small textbox for the target player name
 Section2:BigTextbox({
     Name = "Target Player",
-    PlaceHolderText = "Enter Farmer Name", -- String
-	ResetOnFocus = true, -- Bool
+    PlaceHolderText = "Enter Farmer Name",
+    ResetOnFocus = true,
     Default = "",
     Callback = function(text)
         targetPlayerName = text
@@ -330,285 +134,89 @@ Section2:BigTextbox({
             Sound = "rbxassetid://6647898215",
             Duration = 3,
         })
-        
-        -- Update the auto disconnect if it's active
-        if isAutoDisconnectActive then
-            setupAutoDisconnect()
-        end
     end,
 })
 
--- Add a toggle for the Auto Disconnect feature
 Section2:Toggle({
     Name = "Auto Disconnect When Target Leaves",
     Default = false,
     Callback = function(state)
         isAutoDisconnectActive = state
-        
-        if state then
-            if targetPlayerName == "" then
-                Library:Notify({
-                    Name = "Auto Disconnect",
-                    Text = "Please enter a target player name first",
-                    Icon = "rbxassetid://11401835376",
-                    Sound = "rbxassetid://6647898215",
-                    Duration = 5,
-                })
-            else
-                setupAutoDisconnect()
-            end
-        else
-            -- Clean up the connection if the toggle is turned off
-            if disconnectConnection then
-                disconnectConnection:Disconnect()
-                disconnectConnection = nil
-            end
-            
-            Library:Notify({
-                Name = "Auto Disconnect",
-                Text = "Deactivated",
-                Icon = "rbxassetid://11401835376",
-                Sound = "rbxassetid://6647898215",
-                Duration = 5,
-            })
-        end
-    end,
-})
-
-})
-
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local StarterGui = game:GetService("StarterGui")
-
-local autoDisconnectEnabled = false
-
-local function showNotification(message)
-    StarterGui:SetCore("SendNotification", {
-        Title = "Auto Disconnect",
-        Text = message,
-        Duration = 3
-    })
-    print("Notification: " .. message)
-end
-
-local function disconnectPlayer()
-    showNotification("Server is no longer full (10/10). Disconnecting...") -- Show notification before disconnecting
-    task.wait(3) -- Wait for the notification to show
-
-    local success, errorMessage = pcall(function()
-        player:Kick("Disconnected because the server is no longer full (10/10).")
-    end)
-
-    if not success then
-        warn("Kick() failed. Forcing disconnect...")
-        while true do end -- Crashes the game to force a disconnect
-    end
-end
-
-local function checkPlayerCount()
-    print("Current Players: " .. #Players:GetPlayers())
-    if autoDisconnectEnabled and #Players:GetPlayers() < 10 then
-        disconnectPlayer()
-    end
-end
-
--- Detect when a player leaves
-Players.PlayerRemoving:Connect(function()
-    task.wait(1) -- Short delay to ensure count updates
-    checkPlayerCount()
-end)
-
--- Add Toggle Button
-Section1:Toggle({
-    Name = "Auto Disconnect",
-    Default = false,
-    Callback = function(state)
-        autoDisconnectEnabled = state
-        if state then
-            showNotification("Auto Disconnect Enabled")
-        else
-            showNotification("Auto Disconnect Disabled")
-        end
-        print("Auto Disconnect State: " .. tostring(state))
-    end
-})
-
-
--- Variables for Stare Feature
-local isStareActive = false
-local stareConnection = nil
-local stareTargetName = ""
-
--- Function to set up the stare feature
-local function setupStareFeature()
-    local Players = game:GetService("Players")
-    local Workspace = game:GetService("Workspace")
-    local RunService = game:GetService("RunService")
-    
-    local player = Players.LocalPlayer
-    
-    -- Clean up existing connection if any
-    if stareConnection then
-        stareConnection:Disconnect()
-        stareConnection = nil
-    end
-    
-    -- If the feature is disabled or no target is specified, return
-    if not isStareActive or stareTargetName == "" then
-        return
-    end
-    
-    -- Find the target player by name
-    local targetPlayer
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p.Name:lower() == stareTargetName:lower() then
-            targetPlayer = p
-            break
-        end
-    end
-    
-    if not targetPlayer then
         Library:Notify({
-            Name = "Stare Feature",
-            Text = "Target player not found: " .. stareTargetName,
+            Name = "Auto Disconnect",
+            Text = state and "Enabled" or "Disabled",
             Icon = "rbxassetid://11401835376",
             Sound = "rbxassetid://6647898215",
             Duration = 5,
         })
-        return
-    end
-    
-    -- Set up the stare connection
-    stareConnection = RunService.RenderStepped:Connect(function()
-        local character = player.Character
-        local targetCharacter = targetPlayer.Character
-        
-        if character and targetCharacter then
-            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-            local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
-            
-            if humanoidRootPart and targetRootPart then
-                local direction = (targetRootPart.Position - humanoidRootPart.Position).unit
-                local newCFrame = CFrame.new(humanoidRootPart.Position, humanoidRootPart.Position + direction)
-                humanoidRootPart.CFrame = newCFrame
-            end
-        end
-    end)
-end
-
--- Add a section for the Stare feature
-local Section4 = Tab:Section({
-    Name = "Stare Feature", -- Name of the section
-})
-
--- Add a small textbox for the stare target name
-Section4:BigTextbox({
-    Name = "Love At First Sight(STARE/LOCK)",
-    PlaceHolderText = "Enter Lov-Farmer Name", -- String
-	ResetOnFocus = true, -- Bool
-    Default = "",
-    Callback = function(text)
-        stareTargetName = text
-        Library:Notify({
-            Name = "Stare Target",
-            Text = "Set to: " .. text,
-            Icon = "rbxassetid://11401835376",
-            Sound = "rbxassetid://6647898215",
-            Duration = 3,
-        })
-        
-        -- Update the stare feature if it's active
-        if isStareActive then
-            setupStareFeature()
-        end
     end,
 })
 
--- Add a toggle for the Stare feature
-Section4:Toggle({
-    Name = "Target Name(Farmer)",
+-- Auto Disconnect if Players < 10
+local autoDisconnectEnabled = false
+Section2:Toggle({
+    Name = "Auto Disconnect if Players < 10",
     Default = false,
     Callback = function(state)
-        isStareActive = state
-        
-        if state then
-            if stareTargetName == "" then
-                Library:Notify({
-                    Name = "Love At First Sight(STARE/LOCK)",
-                    Text = "Please enter a target player name first",
-                    Icon = "rbxassetid://11401835376",
-                    Sound = "rbxassetid://6647898215",
-                    Duration = 5,
-                })
-            else
-                setupStareFeature()
-                Library:Notify({
-                    Name = "Love At First Sight(STARE/LOCK)",
-                    Text = "Activated - LOCKING ON " .. stareTargetName,
-                    Icon = "rbxassetid://11401835376",
-                    Sound = "rbxassetid://6647898215",
-                    Duration = 5,
-                })
-            end
-        else
-            -- Disable the stare feature
-            if stareConnection then
-                stareConnection:Disconnect()
-                stareConnection = nil
-            end
-            
-            Library:Notify({
-                Name = "TARGET LOCKING",
-                Text = "Deactivated",
-                Icon = "rbxassetid://11401835376",
-                Sound = "rbxassetid://6647898215",
-                Duration = 5,
-            })
-        end
+        autoDisconnectEnabled = state
+        Library:Notify({
+            Name = "Auto Disconnect",
+            Text = state and "Enabled" or "Disabled",
+            Icon = "rbxassetid://11401835376",
+            Sound = "rbxassetid://6647898215",
+            Duration = 5,
+        })
     end,
 })
 
--- Add a section inside the tab
-local SectionGE = Tab:Section({
-    Name = "Auto Collect Gems"
-})
+-- Player Count Check
+local function checkPlayerCount()
+    local Players = game:GetService("Players")
+    if autoDisconnectEnabled and #Players:GetPlayers() < 10 then
+        Library:Notify({
+            Name = "Auto Disconnect",
+            Text = "Server has fewer than 10 players. Disconnecting...",
+            Icon = "rbxassetid://11401835376",
+            Sound = "rbxassetid://6647898215",
+            Duration = 5,
+        })
+        task.wait(3)
+        game:GetService("Players").LocalPlayer:Kick("Server has fewer than 10 players.")
+    end
+end
 
--- Toggle Button for Auto Collect
+game:GetService("Players").PlayerRemoving:Connect(function()
+    task.wait(1)
+    checkPlayerCount()
+end)
+
+-- Auto Collect Gems Section
+local SectionGE = Tab:Section({ Name = "Auto Collect Gems" })
+
 local AutoCollectEnabled = false
 
-local ToggleButton = SectionGE:Toggle({
+SectionGE:Toggle({
     Name = "Enable Auto Collect",
     Default = false,
-    Callback = function(Value)
-        AutoCollectEnabled = Value
-        if AutoCollectEnabled then
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "Auto Collect",
-                Text = "Enabled",
-                Duration = 2
-            })
-        else
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "Auto Collect",
-                Text = "Disabled",
-                Duration = 2
-            })
-        end
-    end
+    Callback = function(state)
+        AutoCollectEnabled = state
+        Library:Notify({
+            Name = "Auto Collect",
+            Text = state and "Enabled" or "Disabled",
+            Icon = "rbxassetid://11401835376",
+            Sound = "rbxassetid://6647898215",
+            Duration = 2,
+        })
+    end,
 })
 
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-
--- Function to collect gems
+-- Gem Collection Logic
 local function collectGems()
     while AutoCollectEnabled do
         for _, parent in ipairs(workspace.FX:GetChildren()) do
             for _, gem in ipairs(parent:GetChildren()) do
                 if gem.Name == "FakeGem" and gem:IsA("BasePart") then
-                    humanoidRootPart.CFrame = gem.CFrame
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = gem.CFrame
                     task.wait(0.1)
                 end
             end
@@ -617,11 +225,9 @@ local function collectGems()
     end
 end
 
--- Detect new gem folders
 workspace.FX.ChildAdded:Connect(function(child)
     task.wait(1)
     if AutoCollectEnabled then
         collectGems()
     end
 end)
-
